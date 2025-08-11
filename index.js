@@ -332,9 +332,16 @@ async function getScanReport(scanId, userIdInput, apiTokenInput, baseUrl) {
 
     const response = await axios(config);
     let content = response.data;
+    
+    const baseDir = path.resolve('.');
+    let artifactFileName = `scan-result-${scanId}-${type}.${format}`;
+    const artifactPath = path.normalize(path.join(baseDir, artifactFileName));
 
-    let artifactName = `scan-result-${scanId}-${type}.${format}`;
-    let artifactPath = path.join('.', artifactFileName);
+    if (!artifactPath.startsWith(baseDir)) {
+      core.setFailed("Path traversal attempt detected. Invalid artifact path.");
+      return;
+    }
+    
     fs.writeFileSync(artifactPath, content);
 
     const artifact = new DefaultArtifactClient();
